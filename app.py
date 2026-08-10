@@ -74,57 +74,71 @@ def flip_card():
 # ---------------------------------------------------------------------------
 # 카드 및 입력창 스타일 (CSS)
 # ---------------------------------------------------------------------------
-CARD_CSS = """
-<style>
-/* 카드 컨테이너 */
-.card-container {
-    width: 100%;
-    min-height: 150px !important;
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
-    margin: 15px 0 20px 0;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    word-break: break-word;
-    transition: all 0.3s ease;
+{
+    width: 100% !important;
+    min-height: 300px !important;       /* 카드 크기(높이) 200px 설정 */
+    border-radius: 20px !important;
+    padding: 20px !important;
+    margin: 10px 0 20px 0 !important;
+    border: none !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.3s ease !important;
+    white-space: pre-wrap !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    line-height: 1.6 !important;
 }
 
-.card-container:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+div.stButton > button[key*="main_card_btn"]:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25) !important;
 }
 
-/* 카드 앞면 (한국어 뜻) */
-.card-front {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: #ffffff;
+/* 카드 앞면 스타일 (파란색 그라데이션) */
+div.stButton > button[key*="main_card_btn_front"] {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+    color: #ffffff !important;
 }
 
-/* 카드 뒷면 (영단어) */
-.card-back {
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-    color: #ffffff;
+/* 카드 뒷면 스타일 (밝은 파란색 그라데이션) */
+div.stButton > button[key*="main_card_btn_back"] {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%) !important;
+    color: #ffffff !important;
 }
 
-/* 카드 라벨 (작은 서브 텍스트) */
-.card-label-sub {
-    font-size: 0.9rem;
-    opacity: 0.85;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-
-/* 카드 메인 텍스트 */
-.card-text-main {
+/* 2. 스펠링 입력창 스타일 */
+div[data-testid="stTextInput"] input {
     font-size: 1.25rem !important;
-    font-weight: 700;
-    line-height: 1.5;
+    height: 60px !important;
+    border-radius: 12px !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
 }
 
+div[data-testid="stTextInput"] label p {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+}
+
+/* 정답/오답 텍스트 스타일 */
+.status-ok {
+    color: #2e7d32;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    margin: 15px 0;
+}
+
+.status-error {
+    color: #c62828;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    margin: 15px 0;
+}
+</style>
+"""
+st.markdown(CARD_CSS, unsafe_allow_html=True)
 /* --------------------------------------------------------- */
 /* 스펠링 입력창 및 텍스트 크기 2배 확대 적용                */
 /* --------------------------------------------------------- */
