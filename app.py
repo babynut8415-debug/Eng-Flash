@@ -129,7 +129,7 @@ CARD_CSS = """
 /* 스펠링 입력창 및 텍스트 크기 2배 확대 적용                */
 /* --------------------------------------------------------- */
 div[data-testid="stTextInput"] input {
-    font-size: 1.5rem !important;        /* 입력 텍스트 크기 2배 */
+    font-size: 1.25rem !important;        /* 입력 텍스트 크기 2배 */
     height: 80px !important;            /* 입력 상자 높이 2배 */
     border-radius: 12px !important;
     padding: 10px 20px !important;
