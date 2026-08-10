@@ -207,7 +207,7 @@ else:
     if not clean_input:
         ox_result = "❌ 오답입니다!"
     elif clean_input == clean_target:
-        ox_result = "⭕ (정답입니다!)"
+        ox_result = "⭕ 정답입니다!"
     else:
         ox_result = f"❌ 오답입니다! (입력: {user_input})"
 
