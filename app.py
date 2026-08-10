@@ -94,7 +94,7 @@ div.stButton > button:first-child {
 div.stButton > button:first-child p,
 div.stButton > button:first-child div,
 div.stButton > button:first-child span {
-    font-size: 3rem !important;
+    font-size: 2rem !important;
     font-weight: 700 !important;
     color: white !important;
     line-height: 1.2 !important;
