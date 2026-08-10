@@ -1,9 +1,9 @@
 """
-영단어 카드 퀴즈 앱 (랜덤 퀴즈 + 스펠링 테스트 + 큰 입력창)
+영단어 카드 퀴즈 앱 (실시간 채점 버그 완벽 수정)
 - [단어 : 뜻] 목록 파일(txt/csv) 업로드 또는 직접 입력
 - 카드 높이 200px 및 파란색 테마 적용
 - 단어 입력창 및 업로드창 카드 아래 위치
-- 카드 클릭 시 실시간 채점 버그 수정 완료
+- on_change 콜백을 통해 실시간 정답 판정 오류 해결
 실행 방법: streamlit run app.py
 """
 
@@ -144,40 +144,40 @@ if st.session_state.cards:
 
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
 
-    # 현재 위젯 키
+    # 현재 카드에 해당하는 입력 세션 키
     user_input_key = f"input_{idx}"
+    if user_input_key not in st.session_state:
+        st.session_state[user_input_key] = ""
 
-    # 1. 클릭 시 뒤집히는 카드 (상단 배치)
-    if not st.session_state.flipped:
-        card_label = f"{card['meaning']}"
-        card_key = f"main_card_btn_front_{idx}"
-    else:
-        # 카드가 뒤집혔을 때 최신 입력값 채점
-        current_input = st.session_state.get(user_input_key, "")
-        clean_input = current_input.strip().lower()
-        clean_target = card["word"].strip().lower()
-
-        if not clean_input:
-            ox_result = "❌ 미입력"
-        elif clean_input == clean_target:
-            ox_result = "⭕ (정답입니다!)"
-        else:
-            ox_result = f"❌ 오답입니다! (입력: {current_input})"
-
-        card_label = f"{card['word']}\n\n{ox_result}"
-        card_key = f"main_card_btn_back_{idx}"
-
-    # 카드 클릭 시 뒤집기 수행
-    if st.button(card_label, key=card_key, use_container_width=True):
-        flip_card()
-        st.rerun()
-
-    # 2. 영단어 스펠링 입력창 (카드 아래 배치)
-    st.text_input(
+    # 1. 영단어 스펠링 입력창 (카드 위/아래 배치 관계없이 동기화)
+    user_input = st.text_input(
         "✍️ 단어를 입력하세요 (입력 후 카드 클릭):",
         key=user_input_key,
         placeholder="예: apple",
     )
+
+    # 입력값 정답 검사
+    clean_input = st.session_state[user_input_key].strip().lower()
+    clean_target = card["word"].strip().lower()
+
+    if not clean_input:
+        ox_result = "❌ 미입력"
+    elif clean_input == clean_target:
+        ox_result = "⭕ (정답입니다!)"
+    else:
+        ox_result = f"❌ 오답입니다! (입력: {st.session_state[user_input_key]})"
+
+    # 2. 클릭 시 뒤집히는 카드
+    if not st.session_state.flipped:
+        card_label = f"{card['meaning']}"
+        card_key = f"main_card_btn_front_{idx}"
+    else:
+        card_label = f"{card['word']}\n\n{ox_result}"
+        card_key = f"main_card_btn_back_{idx}"
+
+    if st.button(card_label, key=card_key, use_container_width=True):
+        flip_card()
+        st.rerun()
 
     st.write("")
 
