@@ -245,11 +245,10 @@ else:
     else:
         # 카드 뒷면 (정답 + O/X 표기)
         card_label = (
-            f"🔤 영단어 정답 (뒷면)\n\n"
-            f"정답: {card['word']}\n"
-            f"판정: {ox_result}\n\n\n"
-            f"👇 (카드를 클릭하면 앞면으로 돌아갑니다)"
-        )
+            f"정답\n\n"
+            f"정답: {card['word']}\n\n"
+            f"판정: {ox_result}\n"
+       )
         card_key = f"main_card_btn_back_{idx}"
 
     # 카드 클릭 이벤트 처리
