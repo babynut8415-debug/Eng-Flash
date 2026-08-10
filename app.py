@@ -79,7 +79,7 @@ CARD_CSS = """
 /* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 350px !important;
+    min-height: 150px !important;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
