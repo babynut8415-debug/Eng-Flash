@@ -93,7 +93,7 @@ CARD_CSS = """
 /* 4배 커진 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 880px !important;  /* 기존 약 220px의 4배 크기 */
+    min-height: 440px !important;  /* 기존 약 220px의 4배 크기 */
     border-radius: 24px;
     display: flex;
     flex-direction: column;
