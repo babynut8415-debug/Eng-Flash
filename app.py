@@ -83,7 +83,7 @@ div.stButton > button:first-child {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
     border-radius: 20px !important;
-    font-size: 5rem !important;
+    font-size: 2rem !important;
     font-weight: 700 !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     border: none !important;
