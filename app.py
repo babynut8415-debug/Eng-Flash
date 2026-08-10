@@ -237,13 +237,13 @@ else:
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
-            st.session_state.idx -= 1
+        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
+            st.session_state.idx += 1
             st.session_state.flipped = False
             st.rerun()
 
-    with col2:
-        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
-            st.session_state.idx += 1
+    with col2:        
+        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
+            st.session_state.idx -= 1
             st.session_state.flipped = False
             st.rerun()
