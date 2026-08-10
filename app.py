@@ -80,7 +80,7 @@ CARD_CSS = """
 /* 4배 커진 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 880px !important;  /* 세로 4배 크기 */
+    min-height: 300px !important;  /* 세로 4배 크기 */
     border-radius: 24px;
     display: flex;
     flex-direction: column;
