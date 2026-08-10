@@ -174,34 +174,6 @@ st.caption("단어와 뜻 목록을 입력하고, 스펠링을 맞춰보세요!"
 with st.sidebar:
     st.header("1. 단어 : 뜻 업로드")
 
-    uploaded_file = st.file_uploader(
-        "TXT 또는 CSV 파일을 올려주세요",
-        type=["txt", "csv"],
-        help="'단어 : 뜻' 형식으로 작성해 주세요."
-    )
-
-    if uploaded_file is not None:
-        try:
-            uploaded_text = uploaded_file.getvalue().decode("utf-8-sig")
-        except UnicodeDecodeError:
-            uploaded_text = uploaded_file.getvalue().decode("cp949", errors="ignore")
-
-        if st.button("📚 단어로 카드 만들기", type="primary", use_container_width=True):
-            cards = parse_word_pairs(uploaded_text)
-
-            if not cards:
-                st.error("단어를 찾지 못했어요. 'apple : 사과' 형태로 입력해 주세요.")
-            else:
-                st.session_state.cards = cards
-                shuffle_quiz()
-                st.success(f"{len(cards)}개의 단어로 카드를 만들었어요! (순서 섞음)")
-
-    st.caption("예시 파일:")
-    st.code("apple : 사과\nbook : 책\ncomputer : 컴퓨터\nbeautiful : 아름다운\nimportant : 중요한", language="text")
-
-    st.divider()
-    st.header("또는 직접 입력")
-
     manual_words = st.text_area(
         "단어 : 뜻 입력",
         placeholder="apple : 사과\nbook : 책\ncomputer : 컴퓨터",
