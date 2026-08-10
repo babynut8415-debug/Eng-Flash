@@ -1,14 +1,26 @@
 """
 영단어 카드 퀴즈 앱
-- 사진/OCR 대신 영단어 목록 파일(txt/csv)을 업로드하거나 직접 입력
+- 사진을 업로드하면 OCR로 영단어를 추출
 - 각 단어를 한국어로 번역
-- 카드를 클릭하면 영단어 ↔ 한국어 뜻으로 뒤집힘
+- 카드 앞면(영단어) / 뒷면(한국어 뜻)으로 넘겨보는 퀴즈 UI
 실행 방법: streamlit run app.py
 """
 
+import os
+import platform
 import re
+
+import pytesseract
 import streamlit as st
 from deep_translator import GoogleTranslator
+from PIL import Image
+
+# Windows 로컬 PC에서만 tesseract 설치 경로를 지정합니다.
+# (Streamlit Cloud 등 Linux 서버에서는 packages.txt로 자동 설치되므로 이 코드가 무시됩니다.)
+if platform.system() == "Windows":
+    _WIN_TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    if os.path.exists(_WIN_TESSERACT_PATH):
+        pytesseract.pytesseract.tesseract_cmd = _WIN_TESSERACT_PATH
 
 st.set_page_config(page_title="영단어 카드 퀴즈", page_icon="📚", layout="centered")
 
@@ -16,7 +28,7 @@ st.set_page_config(page_title="영단어 카드 퀴즈", page_icon="📚", layou
 # 세션 상태 초기화
 # ---------------------------------------------------------------------------
 if "cards" not in st.session_state:
-    st.session_state.cards = []  
+    st.session_state.cards = []  # [{"word": "apple", "meaning": "사과"}, ...]
 if "idx" not in st.session_state:
     st.session_state.idx = 0
 if "flipped" not in st.session_state:
@@ -26,32 +38,28 @@ if "flipped" not in st.session_state:
 # ---------------------------------------------------------------------------
 # 핵심 함수
 # ---------------------------------------------------------------------------
-def parse_words(text: str) -> list[str]:
-    """텍스트에서 영단어를 추출하고 중복을 제거한다.
-    한 줄에 한 단어를 권장하며, 쉼표/세미콜론/탭도 구분자로 사용할 수 있다.
+def extract_words(image: Image.Image) -> tuple[list[str], str]:
+    """사진에서 텍스트를 추출한 뒤, 중복 없는 영단어 리스트로 정리한다.
+    반환값: (정리된 단어 리스트, OCR 원본 텍스트)
     """
-    raw = re.split(r"[\s,;]+", text)
+    text = pytesseract.image_to_string(image, lang="eng")
+    raw_words = re.findall(r"[A-Za-z]+(?:[-'][A-Za-z]+)*", text)
+
     words, seen = [], set()
-
-    for item in raw:
-        word = item.strip()
-        # 영단어와 하이픈/아포스트로피만 허용
-        if not re.fullmatch(r"[A-Za-z]+(?:[-'][A-Za-z]+)*", word):
+    for w in raw_words:
+        lw = w.lower()
+        if len(lw) < 2:  # 한 글자짜리 노이즈 제거
             continue
-
-        word = word.lower()
-        if len(word) < 2 or word in seen:
+        if lw in seen:
             continue
-
-        seen.add(word)
-        words.append(word)
-
-    return words
+        seen.add(lw)
+        words.append(lw)
+    return words, text
 
 
 @st.cache_data(show_spinner=False)
 def translate_word(word: str) -> str:
-    """영단어 하나를 한국어로 번역한다."""
+    """단어 하나를 한국어로 번역한다. (결과는 캐시되어 재요청 시 재사용)"""
     try:
         return GoogleTranslator(source="en", target="ko").translate(word)
     except Exception:
@@ -59,19 +67,13 @@ def translate_word(word: str) -> str:
 
 
 def build_cards(words: list[str]) -> list[dict]:
+    """단어 리스트를 받아 {word, meaning} 카드 리스트를 만든다. 진행률 표시 포함."""
     cards = []
     progress = st.progress(0, text="단어 번역 중...")
-
-    for i, word in enumerate(words):
-        cards.append({
-            "word": word,
-            "meaning": translate_word(word),
-        })
-        progress.progress(
-            (i + 1) / len(words),
-            text=f"번역 중... ({i + 1}/{len(words)})"
-        )
-
+    for i, w in enumerate(words):
+        meaning = translate_word(w)
+        cards.append({"word": w, "meaning": meaning})
+        progress.progress((i + 1) / len(words), text=f"번역 중... ({i + 1}/{len(words)})")
     progress.empty()
     return cards
 
@@ -81,9 +83,6 @@ def reset_quiz():
     st.session_state.flipped = False
 
 
-def flip_card():
-    st.session_state.flipped = not st.session_state.flipped
-    
 # ---------------------------------------------------------------------------
 # 카드 스타일 (CSS)
 # ---------------------------------------------------------------------------
@@ -124,75 +123,47 @@ CARD_CSS = """
 st.markdown(CARD_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# 제목
+# 사이드바: 업로드 & 단어 목록
 # ---------------------------------------------------------------------------
 st.title("📚 영단어 카드 퀴즈")
-st.caption("영단어 목록을 업로드하면 카드가 만들어집니다. 카드를 클릭하면 뜻을 확인할 수 있어요.")
+st.caption("영단어가 담긴 사진을 올리면, 단어를 추출해 한국어 뜻 카드 퀴즈를 만들어드려요.")
+st.caption("🔖 코드 버전: v5 (이 문구가 안 보이면 예전 파일이 실행 중인 거예요)")
 
-# ---------------------------------------------------------------------------
-# 사이드바: 영단어 업로드
-# ---------------------------------------------------------------------------
 with st.sidebar:
-    st.header("1. 영단어 업로드")
-
-    uploaded_file = st.file_uploader(
-        "TXT 또는 CSV 파일을 올려주세요",
-        type=["txt", "csv"],
-        help="한 줄에 한 단어를 넣거나, 쉼표/세미콜론으로 구분하세요."
-    )
+    st.header("1. 사진 업로드")
+    uploaded_file = st.file_uploader("영단어가 보이는 사진을 올려주세요", type=["png", "jpg", "jpeg"])
 
     if uploaded_file is not None:
-        try:
-            uploaded_text = uploaded_file.getvalue().decode("utf-8-sig")
-        except UnicodeDecodeError:
-            uploaded_text = uploaded_file.getvalue().decode("cp949", errors="ignore")
+        image = Image.open(uploaded_file).convert("RGB")
+        st.image(image, caption="업로드한 사진", use_container_width=True)
 
-        if st.button("📚 단어로 카드 만들기", type="primary", use_container_width=True):
-            words = parse_words(uploaded_text)
+        if st.button("🔍 단어 추출 & 카드 만들기", type="primary", use_container_width=True):
+            with st.spinner("사진에서 영단어를 찾는 중..."):
+                words, raw_text = extract_words(image)
+            st.session_state.raw_ocr_text = raw_text
 
             if not words:
-                st.error("영단어를 찾지 못했어요. 예: apple, book, computer")
+                st.error("사진에서 영단어를 찾지 못했어요. 더 선명하고 글자가 큰 사진으로 다시 시도해보세요.")
             else:
                 st.session_state.cards = build_cards(words)
                 reset_quiz()
                 st.success(f"{len(words)}개의 단어로 카드를 만들었어요!")
 
-    st.caption("예시 파일:")
-    st.code("apple\nbook\ncomputer\nbeautiful\nimportant", language="text")
-
-    st.divider()
-    st.header("또는 직접 입력")
-
-    manual_words = st.text_area(
-        "영단어 입력",
-        placeholder="apple\nbook\ncomputer\nbeautiful",
-        height=140,
-        help="한 줄에 한 단어씩 입력하거나 쉼표로 구분하세요."
-    )
-
-    if st.button("✏️ 입력한 단어로 카드 만들기", use_container_width=True):
-        words = parse_words(manual_words)
-
-        if not words:
-            st.error("영단어를 입력해주세요.")
-        else:
-            st.session_state.cards = build_cards(words)
-            reset_quiz()
-            st.success(f"{len(words)}개의 단어로 카드를 만들었어요!")
+    if "raw_ocr_text" in st.session_state:
+        with st.expander("🛠️ 디버그: OCR 원본 텍스트 보기"):
+            st.text(st.session_state.raw_ocr_text or "(추출된 텍스트 없음)")
 
     if st.session_state.cards:
         st.divider()
-        st.header("2. 단어 목록")
+        st.header("2. 추출된 단어 목록")
         for c in st.session_state.cards:
             st.write(f"- **{c['word']}** : {c['meaning']}")
-
-
 
 # ---------------------------------------------------------------------------
 # 메인 화면: 카드 퀴즈
 # ---------------------------------------------------------------------------
 if not st.session_state.cards:
-    st.info("왼쪽에서 TXT/CSV 영단어 파일을 업로드하거나 직접 단어를 입력해 주세요. 👈")
+    st.info("왼쪽 사이드바에서 사진을 업로드하고 카드를 만들어보세요 👈")
 else:
     cards = st.session_state.cards
     total = len(cards)
@@ -200,51 +171,39 @@ else:
     card = cards[idx]
 
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
-    st.markdown(
-        '<div class="card-hint">👆 카드를 클릭하면 뒤집힙니다</div>',
-        unsafe_allow_html=True,
-    )
 
-    # Streamlit 버튼을 카드처럼 꾸며서 카드 자체를 클릭하면 뒤집히도록 처리
     if st.session_state.flipped:
-        label = card["meaning"]
-        card_class = "card-meaning"
+        # 뒷면: 영단어
+        st.markdown(
+            f'<div class="flashcard card-word"><div>'
+            f'<span class="card-label">영단어</span>{card["word"]}</div></div>',
+            unsafe_allow_html=True,
+        )
     else:
-        label = card["word"]
-        card_class = "card-word"
+        # 앞면: 한국어 뜻
+        st.markdown(
+            f'<div class="flashcard card-meaning"><div>'
+            f'<span class="card-label">뜻 (한국어)</span>{card["meaning"]}</div></div>',
+            unsafe_allow_html=True,
+        )
 
-    if st.button(
-        label,
-        key=f"flashcard_{idx}_{st.session_state.flipped}",
-        use_container_width=True,
-    ):
-        flip_card()
-        st.rerun()
-
-    col1, col2 = st.columns([1, 1])
-
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button(
-            "⬅️ 이전",
-            use_container_width=True,
-            disabled=(idx == 0),
-        ):
+        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
             st.session_state.idx -= 1
             st.session_state.flipped = False
             st.rerun()
-
     with col2:
-        if st.button(
-            "다음 ➡️",
-            use_container_width=True,
-            disabled=(idx == total - 1),
-        ):
+        if st.button("🔄 카드 뒤집기", use_container_width=True):
+            st.session_state.flipped = not st.session_state.flipped
+            st.rerun()
+    with col3:
+        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
             st.session_state.idx += 1
             st.session_state.flipped = False
             st.rerun()
 
     st.divider()
-
     if st.button("🔁 처음부터 다시 풀기", use_container_width=True):
         reset_quiz()
         st.rerun()
