@@ -79,7 +79,7 @@ CARD_CSS = """
 /* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 350px !important;
+    min-height: 200px !important;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
@@ -115,13 +115,13 @@ CARD_CSS = """
     font-size: 0.9rem;
     opacity: 0.85;
     margin-bottom: 12px;
-    font-weight: 500;
+    font-weight: 200;
 }
 
 /* 카드 메인 텍스트 (기존 3.8rem의 1/3인 1.25rem으로 변경) */
 .card-text-main {
     font-size: 1.25rem !important;
-    font-weight: 700;
+    font-weight: 200;
     line-height: 1.5;
 }
 
@@ -129,7 +129,7 @@ CARD_CSS = """
 .status-ok {
     color: #2e7d32;
     font-size: 1.8rem;
-    font-weight: 800;
+    font-weight: 500;
     text-align: center;
     margin: 10px 0;
 }
@@ -137,7 +137,7 @@ CARD_CSS = """
 .status-error {
     color: #c62828;
     font-size: 1.8rem;
-    font-weight: 800;
+    font-weight: 500;
     text-align: center;
     margin: 10px 0;
 }
