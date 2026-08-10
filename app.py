@@ -1,8 +1,8 @@
 """
-영단어 카드 퀴즈 앱 (랜덤 퀴즈 + 스펠링 테스트 + 텍스트 크기 축소)
+영단어 카드 퀴즈 앱 (랜덤 퀴즈 + 스펠링 테스트 + 큰 입력창)
 - [단어 : 뜻] 목록 파일(txt/csv) 업로드 또는 직접 입력
 - 단어 랜덤 섞기(Random) 기능 지원
-- 카드 텍스트(뜻/영단어) 크기 1/3 축소
+- 카드 텍스트(뜻/영단어) 크기축소 및 스펠링 입력창/글자 크기 2배 확대
 실행 방법: streamlit run app.py
 """
 
@@ -72,14 +72,14 @@ def flip_card():
 
 
 # ---------------------------------------------------------------------------
-# 카드 스타일 (CSS - 글자 크기 1/3로 축소)
+# 카드 및 입력창 스타일 (CSS)
 # ---------------------------------------------------------------------------
 CARD_CSS = """
 <style>
 /* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 200px !important;
+    min-height: 350px !important;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
@@ -115,31 +115,48 @@ CARD_CSS = """
     font-size: 0.9rem;
     opacity: 0.85;
     margin-bottom: 12px;
-    font-weight: 200;
+    font-weight: 500;
 }
 
-/* 카드 메인 텍스트 (기존 3.8rem의 1/3인 1.25rem으로 변경) */
+/* 카드 메인 텍스트 */
 .card-text-main {
     font-size: 1.25rem !important;
-    font-weight: 200;
+    font-weight: 700;
     line-height: 1.5;
+}
+
+/* --------------------------------------------------------- */
+/* 스펠링 입력창 및 텍스트 크기 2배 확대 적용                */
+/* --------------------------------------------------------- */
+div[data-testid="stTextInput"] input {
+    font-size: 2rem !important;        /* 입력 텍스트 크기 2배 */
+    height: 80px !important;            /* 입력 상자 높이 2배 */
+    border-radius: 12px !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+}
+
+/* 입력창 라벨 텍스트 크기 지정 */
+div[data-testid="stTextInput"] label p {
+    font-size: 1.3rem !important;
+    font-weight: bold !important;
 }
 
 /* 정답/오답 텍스트 스타일 */
 .status-ok {
     color: #2e7d32;
-    font-size: 1.8rem;
-    font-weight: 500;
+    font-size: 2.2rem;
+    font-weight: 900;
     text-align: center;
-    margin: 10px 0;
+    margin: 15px 0;
 }
 
 .status-error {
     color: #c62828;
-    font-size: 1.8rem;
-    font-weight: 500;
+    font-size: 2.2rem;
+    font-weight: 900;
     text-align: center;
-    margin: 10px 0;
+    margin: 15px 0;
 }
 </style>
 """
@@ -224,15 +241,15 @@ else:
 
     # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
     if not st.session_state.flipped:
-        sub_label = "🇰🇷 한국어 뜻 (앞면)"
+        sub_label = " 뜻 "
         main_text = card["meaning"]
         card_class = "card-front"
     else:
-        sub_label = "🔤 영단어 정답 (뒷면)"
+        sub_label = " 영단어 "
         main_text = card["word"]
         card_class = "card-back"
 
-    # 카드 HTML 영역 (글자 크기가 1/3로 조정됨)
+    # 카드 HTML 영역
     card_html = f"""
     <div class="card-container {card_class}">
         <div class="card-label-sub">{sub_label}</div>
@@ -242,7 +259,7 @@ else:
     st.markdown(card_html, unsafe_allow_html=True)
 
     # -----------------------------------------------------------------------
-    # 영단어 스펠링 입력 및 정답 확인 영역
+    # 영단어 스펠링 입력 (크기 2배 확대) 및 정답 확인 영역
     # -----------------------------------------------------------------------
     user_input = st.text_input(
         "✍️ 영단어 스펠링을 입력하세요 (입력 후 Enter):",
