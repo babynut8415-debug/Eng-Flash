@@ -211,7 +211,26 @@ else:
 
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
 
+    # -----------------------------------------------------------------------
+    # 1. 영단어 스펠링 입력창 (카드 상단 또는 하단 배치)
+    # -----------------------------------------------------------------------
+    user_input = st.text_input(
+        "✍️ 단어 입력하세요 (입력 후 카드 클릭):",
+        key=f"input_{idx}",
+        placeholder="예: apple",
+    )
 
+    # 채점 결과 계산
+    clean_input = user_input.strip().lower() if user_input else ""
+    clean_target = card["word"].strip().lower()
+
+    if not clean_input:
+        ox_result = "❌ 오답입니다!"
+    elif clean_input == clean_target:
+        ox_result = "⭕ (정답입니다!)"
+    else:
+        ox_result = f"❌ 오답입니다! (입력: {user_input})"
+    
 
     # -----------------------------------------------------------------------
     # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
@@ -237,26 +256,7 @@ else:
 
     st.write("")
 
-    # -----------------------------------------------------------------------
-    # 1. 영단어 스펠링 입력창 (카드 상단 또는 하단 배치)
-    # -----------------------------------------------------------------------
-    user_input = st.text_input(
-        "✍️ 단어 입력하세요 (입력 후 카드 클릭):",
-        key=f"input_{idx}",
-        placeholder="예: apple",
-    )
 
-    # 채점 결과 계산
-    clean_input = user_input.strip().lower() if user_input else ""
-    clean_target = card["word"].strip().lower()
-
-    if not clean_input:
-        ox_result = "❌ 오답입니다!"
-    elif clean_input == clean_target:
-        ox_result = "⭕ (정답입니다!)"
-    else:
-        ox_result = f"❌ 오답입니다! (입력: {user_input})"
-    
     # -----------------------------------------------------------------------
     # 3. 하단 이전/다음/섞기 조작 버튼
     # -----------------------------------------------------------------------
