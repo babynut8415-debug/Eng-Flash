@@ -76,7 +76,7 @@ def flip_card():
 # ---------------------------------------------------------------------------
 {
     width: 100% !important;
-    min-height: 300px !important;       /* 카드 크기(높이) 200px 설정 */
+    min-height: 200px !important;       /* 카드 크기(높이) 200px 설정 */
     border-radius: 20px !important;
     padding: 20px !important;
     margin: 10px 0 20px 0 !important;
