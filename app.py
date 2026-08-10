@@ -237,7 +237,6 @@ else:
     if not st.session_state.flipped:
         # 카드 앞면
         card_label = (
-            f"🇰🇷 한국어 뜻 (앞면)\n\n"
             f"{card['meaning']}\n\n\n"
         )
         card_key = f"main_card_btn_front_{idx}"
