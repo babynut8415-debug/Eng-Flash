@@ -269,7 +269,7 @@ else:
     # -----------------------------------------------------------------------
     # 3. 하단 이전/다음/섞기 조작 버튼
     # -----------------------------------------------------------------------
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns([1, 1])
 
     with col1:
         if st.button(
@@ -282,11 +282,6 @@ else:
             st.rerun()
 
     with col2:
-        if st.button("🔄 뒤집기 (버튼)", type="primary", use_container_width=True):
-            flip_card()
-            st.rerun()
-
-    with col3:
         if st.button(
             "다음 ➡️",
             use_container_width=True,
@@ -296,16 +291,3 @@ else:
             st.session_state.flipped = False
             st.rerun()
 
-    st.divider()
-
-    col_sub1, col_sub2 = st.columns(2)
-    with col_sub1:
-        if st.button("🔀 단어 섞기 (랜덤)", use_container_width=True):
-            shuffle_quiz()
-            st.toast("🎲 카드 순서를 랜덤하게 섞었습니다!")
-            st.rerun()
-
-    with col_sub2:
-        if st.button("🔁 처음부터 다시 풀기", use_container_width=True):
-            reset_quiz()
-            st.rerun()
