@@ -202,7 +202,7 @@ with st.sidebar:
 # 메인 화면: 카드 퀴즈
 # ---------------------------------------------------------------------------
 if not st.session_state.cards:
-    st.info("왼쪽에서 "단어 : 뜻"을 직접 입력해 주세요. 👈")
+    st.info("왼쪽에서 [단어 : 뜻] 을 직접 입력해 주세요. 👈")
 else:
     cards = st.session_state.cards
     total = len(cards)
