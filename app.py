@@ -245,7 +245,7 @@ else:
         # 카드 뒷면 (정답 + O/X 표기)
         card_label = (
             f"{card['word']}\n\n"
-            f"판정: {ox_result}\n"
+            f"{ox_result}\n"
        )
         card_key = f"main_card_btn_back_{idx}"
 
