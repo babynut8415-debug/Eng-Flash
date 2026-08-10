@@ -78,7 +78,7 @@ CARD_CSS = """
 /* 1. 메인 플래시카드 버튼 스타일 */
 /* 300px 크기 + 파란색 그라데이션 적용 */
 div.stButton > button:first-child {
-    width: 300px !important;
+    width: 380px !important;
     min-height: 220px !important;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
@@ -94,7 +94,7 @@ div.stButton > button:first-child {
 div.stButton > button:first-child p,
 div.stButton > button:first-child div,
 div.stButton > button:first-child span {
-    font-size: 3rem !important;
+    font-size: 1.5rem !important;
     font-weight: 700 !important;
     color: white !important;
     line-height: 1.2 !important;
