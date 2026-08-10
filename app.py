@@ -1,14 +1,12 @@
 """
 영단어 카드 퀴즈 앱
-- 영단어 목록 파일(txt/csv)을 업로드하거나 직접 입력
-- 각 단어를 한국어로 번역
+- 구글 자동 번역 없이 사용자가 입력한 [단어 : 뜻] 목록 파일(txt/csv)을 업로드하거나 직접 입력
 - 카드를 클릭하거나 버튼을 누르면 뒤집힘 (앞면: 한국어 뜻 / 뒷면: 영단어)
 실행 방법: streamlit run app.py
 """
 
 import re
 import streamlit as st
-from deep_translator import GoogleTranslator
 
 st.set_page_config(page_title="영단어 카드 퀴즈", page_icon="📚", layout="centered")
 
@@ -26,53 +24,42 @@ if "flipped" not in st.session_state:
 # ---------------------------------------------------------------------------
 # 핵심 함수
 # ---------------------------------------------------------------------------
-def parse_words(text: str) -> list[str]:
-    """텍스트에서 영단어를 추출하고 중복을 제거한다.
-    한 줄에 한 단어를 권장하며, 쉼표/세미콜론/탭도 구분자로 사용할 수 있다.
+def parse_word_pairs(text: str) -> list[dict]:
+    """텍스트에서 [단어 : 뜻] 쌍을 추출하고 중복을 제거한다.
+    구분자로 콜론(:), 등호(=), 하이픈(-), 쉼표(,), 탭(\t)을 인식합니다.
+    예:
+    apple : 사과
+    book = 책
+    computer - 컴퓨터
     """
-    raw = re.split(r"[\s,;]+", text)
-    words, seen = [], set()
+    lines = text.strip().splitlines()
+    cards, seen = [], set()
 
-    for item in raw:
-        word = item.strip()
-        # 영단어와 하이픈/아포스트로피만 허용
-        if not re.fullmatch(r"[A-Za-z]+(?:[-'][A-Za-z]+)*", word):
+    for line in lines:
+        line = line.strip()
+        if not line:
             continue
 
-        word = word.lower()
-        if len(word) < 2 or word in seen:
+        # 콜론(:), 등호(=), 하이픈(-), 탭(\t), 쉼표(,) 중 첫 번째로 발견된 구분자로 나누기
+        parts = re.split(r"[:=\-\t,]", line, maxsplit=1)
+
+        word = parts[0].strip()
+        meaning = parts[1].strip() if len(parts) > 1 and parts[1].strip() else word
+
+        if not word:
             continue
 
-        seen.add(word)
-        words.append(word)
+        # 영단어 소문자 기준 중복 방지 (원래 대소문자는 유지)
+        word_key = word.lower()
+        if word_key in seen:
+            continue
 
-    return words
-
-
-@st.cache_data(show_spinner=False)
-def translate_word(word: str) -> str:
-    """영단어 하나를 한국어로 번역한다."""
-    try:
-        return GoogleTranslator(source="en", target="ko").translate(word)
-    except Exception:
-        return "(번역 실패)"
-
-
-def build_cards(words: list[str]) -> list[dict]:
-    cards = []
-    progress = st.progress(0, text="단어 번역 중...")
-
-    for i, word in enumerate(words):
+        seen.add(word_key)
         cards.append({
             "word": word,
-            "meaning": translate_word(word),
+            "meaning": meaning
         })
-        progress.progress(
-            (i + 1) / len(words),
-            text=f"번역 중... ({i + 1}/{len(words)})"
-        )
 
-    progress.empty()
     return cards
 
 
@@ -93,7 +80,7 @@ CARD_CSS = """
 /* 4배 커진 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 300px !important;  /* 기존 약 220px의 4배 크기 */
+    min-height: 880px !important;  /* 세로 4배 크기 */
     border-radius: 24px;
     display: flex;
     flex-direction: column;
@@ -144,18 +131,18 @@ st.markdown(CARD_CSS, unsafe_allow_html=True)
 # 제목
 # ---------------------------------------------------------------------------
 st.title("📚 영단어 카드 퀴즈")
-st.caption("영단어 목록을 업로드하면 카드가 만들어집니다. 카드를 뒤집어 단어와 뜻을 확인하세요.")
+st.caption("단어와 뜻 목록을 업로드하면 카드가 만들어집니다. 카드를 뒤집어 단어와 뜻을 확인하세요.")
 
 # ---------------------------------------------------------------------------
 # 사이드바: 영단어 업로드
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.header("1. 영단어 업로드")
+    st.header("1. 단어 : 뜻 업로드")
 
     uploaded_file = st.file_uploader(
         "TXT 또는 CSV 파일을 올려주세요",
         type=["txt", "csv"],
-        help="한 줄에 한 단어를 넣거나, 쉼표/세미콜론으로 구분하세요."
+        help="'단어 : 뜻' 형식으로 작성해 주세요."
     )
 
     if uploaded_file is not None:
@@ -165,37 +152,37 @@ with st.sidebar:
             uploaded_text = uploaded_file.getvalue().decode("cp949", errors="ignore")
 
         if st.button("📚 단어로 카드 만들기", type="primary", use_container_width=True):
-            words = parse_words(uploaded_text)
+            cards = parse_word_pairs(uploaded_text)
 
-            if not words:
-                st.error("영단어를 찾지 못했어요. 예: apple, book, computer")
+            if not cards:
+                st.error("단어를 찾지 못했어요. 'apple : 사과' 형태로 입력해 주세요.")
             else:
-                st.session_state.cards = build_cards(words)
+                st.session_state.cards = cards
                 reset_quiz()
-                st.success(f"{len(words)}개의 단어로 카드를 만들었어요!")
+                st.success(f"{len(cards)}개의 단어로 카드를 만들었어요!")
 
     st.caption("예시 파일:")
-    st.code("apple\nbook\ncomputer\nbeautiful\nimportant", language="text")
+    st.code("apple : 사과\nbook : 책\ncomputer : 컴퓨터\nbeautiful : 아름다운\nimportant : 중요한", language="text")
 
     st.divider()
     st.header("또는 직접 입력")
 
     manual_words = st.text_area(
-        "영단어 입력",
-        placeholder="apple\nbook\ncomputer\nbeautiful",
-        height=140,
-        help="한 줄에 한 단어씩 입력하거나 쉼표로 구분하세요."
+        "단어 : 뜻 입력",
+        placeholder="apple : 사과\nbook : 책\ncomputer : 컴퓨터",
+        height=180,
+        help="한 줄에 '단어 : 뜻' 형식으로 작성해 주세요."
     )
 
     if st.button("✏️ 입력한 단어로 카드 만들기", use_container_width=True):
-        words = parse_words(manual_words)
+        cards = parse_word_pairs(manual_words)
 
-        if not words:
-            st.error("영단어를 입력해주세요.")
+        if not cards:
+            st.error("단어와 뜻을 입력해주세요.")
         else:
-            st.session_state.cards = build_cards(words)
+            st.session_state.cards = cards
             reset_quiz()
-            st.success(f"{len(words)}개의 단어로 카드를 만들었어요!")
+            st.success(f"{len(cards)}개의 단어로 카드를 만들었어요!")
 
     if st.session_state.cards:
         st.divider()
@@ -208,7 +195,7 @@ with st.sidebar:
 # 메인 화면: 카드 퀴즈
 # ---------------------------------------------------------------------------
 if not st.session_state.cards:
-    st.info("왼쪽에서 TXT/CSV 영단어 파일을 업로드하거나 직접 단어를 입력해 주세요. 👈")
+    st.info("왼쪽에서 TXT/CSV 단어 파일('단어 : 뜻' 형식)을 업로드하거나 직접 입력해 주세요. 👈")
 else:
     cards = st.session_state.cards
     total = len(cards)
@@ -219,11 +206,11 @@ else:
 
     # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
     if not st.session_state.flipped:
-        sub_label = " 뜻 "
+        sub_label = "🇰🇷 한국어 뜻 (앞면)"
         main_text = card["meaning"]
         card_class = "card-front"
     else:
-        sub_label = " 영단어 "
+        sub_label = "🔤 영단어 (뒷면)"
         main_text = card["word"]
         card_class = "card-back"
 
