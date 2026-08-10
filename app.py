@@ -8,8 +8,7 @@
 
 import re
 import streamlit as st
-from deep_translator 
-import GoogleTranslator
+from deep_translator import GoogleTranslator
 
 st.set_page_config(page_title="영단어 카드 퀴즈", page_icon="📚", layout="centered")
 
