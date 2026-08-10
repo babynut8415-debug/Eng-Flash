@@ -1,12 +1,13 @@
 """
-영단어 카드 퀴즈 앱 (스펠링 테스트 기능 포함)
+영단어 카드 퀴즈 앱 (랜덤 퀴즈 + 스펠링 테스트 + 텍스트 크기 축소)
 - [단어 : 뜻] 목록 파일(txt/csv) 업로드 또는 직접 입력
-- 앞면: 한국어 뜻 표시
-- 아래쪽: 영단어 스펠링 입력 칸 (정답 체크: OK / ERROR)
+- 단어 랜덤 섞기(Random) 기능 지원
+- 카드 텍스트(뜻/영단어) 크기 1/3 축소
 실행 방법: streamlit run app.py
 """
 
 import re
+import random
 import streamlit as st
 
 st.set_page_config(page_title="영단어 카드 퀴즈", page_icon="📚", layout="centered")
@@ -26,9 +27,7 @@ if "flipped" not in st.session_state:
 # 핵심 함수
 # ---------------------------------------------------------------------------
 def parse_word_pairs(text: str) -> list[dict]:
-    """텍스트에서 [단어 : 뜻] 쌍을 추출하고 중복을 제거한다.
-    구분자로 콜론(:), 등호(=), 하이픈(-), 쉼표(,), 탭(\t)을 인식합니다.
-    """
+    """텍스트에서 [단어 : 뜻] 쌍을 추출하고 중복을 제거한다."""
     lines = text.strip().splitlines()
     cards, seen = [], set()
 
@@ -63,35 +62,40 @@ def reset_quiz():
     st.session_state.flipped = False
 
 
+def shuffle_quiz():
+    random.shuffle(st.session_state.cards)
+    reset_quiz()
+
+
 def flip_card():
     st.session_state.flipped = not st.session_state.flipped
 
 
 # ---------------------------------------------------------------------------
-# 카드 스타일 (CSS - 파란색 테마 및 OK/ERROR 스타일)
+# 카드 스타일 (CSS - 글자 크기 1/3로 축소)
 # ---------------------------------------------------------------------------
 CARD_CSS = """
 <style>
 /* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 300px !important;
-    border-radius: 24px;
+    min-height: 350px !important;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px;
+    padding: 30px;
     margin: 15px 0 20px 0;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     word-break: break-word;
     transition: all 0.3s ease;
 }
 
 .card-container:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* 카드 앞면 (한국어 뜻) */
@@ -106,32 +110,34 @@ CARD_CSS = """
     color: #ffffff;
 }
 
+/* 카드 라벨 (작은 서브 텍스트) */
 .card-label-sub {
-    font-size: 1.3rem;
+    font-size: 0.9rem;
     opacity: 0.85;
-    margin-bottom: 24px;
-    font-weight: 300;
+    margin-bottom: 12px;
+    font-weight: 500;
 }
 
+/* 카드 메인 텍스트 (기존 3.8rem의 1/3인 1.25rem으로 변경) */
 .card-text-main {
-    font-size: 3.8rem;
-    font-weight: 300;
-    line-height: 1.3;
+    font-size: 1.25rem !important;
+    font-weight: 700;
+    line-height: 1.5;
 }
 
 /* 정답/오답 텍스트 스타일 */
 .status-ok {
     color: #2e7d32;
-    font-size: 2.2rem;
-    font-weight: 900;
+    font-size: 1.8rem;
+    font-weight: 800;
     text-align: center;
     margin: 10px 0;
 }
 
 .status-error {
     color: #c62828;
-    font-size: 2.2rem;
-    font-weight: 900;
+    font-size: 1.8rem;
+    font-weight: 800;
     text-align: center;
     margin: 10px 0;
 }
@@ -170,8 +176,8 @@ with st.sidebar:
                 st.error("단어를 찾지 못했어요. 'apple : 사과' 형태로 입력해 주세요.")
             else:
                 st.session_state.cards = cards
-                reset_quiz()
-                st.success(f"{len(cards)}개의 단어로 카드를 만들었어요!")
+                shuffle_quiz()
+                st.success(f"{len(cards)}개의 단어로 카드를 만들었어요! (순서 섞음)")
 
     st.caption("예시 파일:")
     st.code("apple : 사과\nbook : 책\ncomputer : 컴퓨터\nbeautiful : 아름다운\nimportant : 중요한", language="text")
@@ -193,8 +199,8 @@ with st.sidebar:
             st.error("단어와 뜻을 입력해주세요.")
         else:
             st.session_state.cards = cards
-            reset_quiz()
-            st.success(f"{len(cards)}개의 단어로 카드를 만들었어요!")
+            shuffle_quiz()
+            st.success(f"{len(cards)}개의 단어로 카드를 만들었어요! (순서 섞음)")
 
     if st.session_state.cards:
         st.divider()
@@ -226,7 +232,7 @@ else:
         main_text = card["word"]
         card_class = "card-back"
 
-    # 세로 카드 HTML 영역
+    # 카드 HTML 영역 (글자 크기가 1/3로 조정됨)
     card_html = f"""
     <div class="card-container {card_class}">
         <div class="card-label-sub">{sub_label}</div>
@@ -285,6 +291,14 @@ else:
 
     st.divider()
 
-    if st.button("🔁 처음부터 다시 풀기", use_container_width=True):
-        reset_quiz()
-        st.rerun()
+    col_sub1, col_sub2 = st.columns(2)
+    with col_sub1:
+        if st.button("🔀 단어 섞기 (랜덤)", use_container_width=True):
+            shuffle_quiz()
+            st.toast("🎲 카드 순서를 랜덤하게 섞었습니다!")
+            st.rerun()
+
+    with col_sub2:
+        if st.button("🔁 처음부터 다시 풀기", use_container_width=True):
+            reset_quiz()
+            st.rerun()
