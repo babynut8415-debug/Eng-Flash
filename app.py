@@ -71,39 +71,60 @@ def flip_card():
     st.session_state.flipped = not st.session_state.flipped
 
 # ---------------------------------------------------------------------------
-# 카드 스타일 (CSS)
+# 카드 스타일 (CSS) - st.button에 직접 적용
 # ---------------------------------------------------------------------------
 CARD_CSS = """
 <style>
-.flashcard {
-    width: 100%;
-    min-height: 220px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
-    margin: 20px 0;
-    font-size: 2.2em;
-    font-weight: 700;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    word-break: break-word;
+/* 1. 메인 플래시카드 버튼 스타일 */
+/* 300px 크기 + 파란색 그라데이션 적용 */
+div.stButton > button:first-child {
+    width: 300px !important;
+    min-height: 220px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-radius: 20px !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    border: none !important;
+    margin: 20px auto !important;
+    display: block !important;
+    white-space: pre-wrap !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
 }
-.card-meaning {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+
+div.stButton > button:first-child:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25) !important;
+    color: white !important;
 }
-.card-word {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
+
+div.stButton > button:first-child:active {
+    transform: translateY(0) !important;
 }
-.card-label {
-    font-size: 0.35em;
-    opacity: 0.85;
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 400;
+
+/* 2. 하단 조작 버튼(이전/다음) 및 사이드바 버튼은 기본 스타일 유지 */
+/* 가로 배치를 위해 st.columns 내의 버튼 스타일을 복구합니다. */
+div[data-testid="stHorizontalBlock"] div.stButton > button,
+section[data-testid="stSidebar"] div.stButton > button {
+    width: 100% !important;
+    min-height: unset !important;
+    height: auto !important;
+    background: transparent !important;
+    color: inherit !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(49, 51, 63, 0.2) !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+}
+
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
+section[data-testid="stSidebar"] div.stButton > button:hover {
+    border-color: #764ba2 !important;
+    color: #764ba2 !important;
 }
 </style>
 """
@@ -186,7 +207,8 @@ else:
         card_key = f"main_card_btn_back_{idx}"
 
     # 카드 클릭 이벤트 처리
-    if st.button(card_label, key=card_key, use_container_width=True):
+    # 스타일 적용을 위해 use_container_width=False로 설정 (CSS에서 300px 고정)
+    if st.button(card_label, key=card_key, use_container_width=False):
         flip_card()
         st.rerun()
 
