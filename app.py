@@ -1,19 +1,14 @@
 """
 영단어 카드 퀴즈 앱
-- 사진을 업로드하면 OCR로 영단어를 추출
+- 사진/OCR 대신 영단어 목록 파일(txt/csv)을 업로드하거나 직접 입력
 - 각 단어를 한국어로 번역
-- 카드 앞면(영단어) / 뒷면(한국어 뜻)으로 넘겨보는 퀴즈 UI
+- 카드를 클릭하면 영단어 ↔ 한국어 뜻으로 뒤집힘
 실행 방법: streamlit run app.py
 """
 
-import os
-import platform
 import re
-
-import pytesseract
 import streamlit as st
 from deep_translator import GoogleTranslator
-from PIL import Image
 
 # Windows 로컬 PC에서만 tesseract 설치 경로를 지정합니다.
 # (Streamlit Cloud 등 Linux 서버에서는 packages.txt로 자동 설치되므로 이 코드가 무시됩니다.)
