@@ -234,7 +234,7 @@ else:
             st.rerun()
 
     with col2:
-        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
+         if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
             st.session_state.idx -= 1
             st.session_state.flipped = False
             st.rerun()
