@@ -75,7 +75,7 @@ CARD_CSS = """
 /* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 500px !important;
+    min-height: 300px !important;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
@@ -110,12 +110,12 @@ CARD_CSS = """
     font-size: 1.3rem;
     opacity: 0.85;
     margin-bottom: 24px;
-    font-weight: 500;
+    font-weight: 300;
 }
 
 .card-text-main {
     font-size: 3.8rem;
-    font-weight: 800;
+    font-weight: 300;
     line-height: 1.3;
 }
 
