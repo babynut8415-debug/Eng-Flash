@@ -2,7 +2,8 @@
 영단어 카드 퀴즈 앱 (랜덤 퀴즈 + 스펠링 테스트 + 큰 입력창)
 - [단어 : 뜻] 목록 파일(txt/csv) 업로드 또는 직접 입력
 - 단어 랜덤 섞기(Random) 기능 지원
-- 카드 텍스트(뜻/영단어) 크기축소 및 스펠링 입력창/글자 크기 2배 확대
+- 카드 높이 200px 및 파란색 테마 적용
+- 단어 입력창을 카드 아래로 배치
 실행 방법: streamlit run app.py
 """
 
@@ -74,7 +75,10 @@ def flip_card():
 # ---------------------------------------------------------------------------
 # 카드 및 입력창 스타일 (CSS)
 # ---------------------------------------------------------------------------
-{
+CARD_CSS = """
+<style>
+/* 1. 카드로 사용할 대형 버튼 스타일링 (높이 200px 적용) */
+div.stButton > button[key*="main_card_btn"] {
     width: 100% !important;
     min-height: 200px !important;       /* 카드 크기(높이) 200px 설정 */
     border-radius: 20px !important;
@@ -117,42 +121,6 @@ div[data-testid="stTextInput"] input {
 
 div[data-testid="stTextInput"] label p {
     font-size: 1.2rem !important;
-    font-weight: bold !important;
-}
-
-/* 정답/오답 텍스트 스타일 */
-.status-ok {
-    color: #2e7d32;
-    font-size: 2.2rem;
-    font-weight: 900;
-    text-align: center;
-    margin: 15px 0;
-}
-
-.status-error {
-    color: #c62828;
-    font-size: 2.2rem;
-    font-weight: 900;
-    text-align: center;
-    margin: 15px 0;
-}
-</style>
-"""
-st.markdown(CARD_CSS, unsafe_allow_html=True)
-/* --------------------------------------------------------- */
-/* 스펠링 입력창 및 텍스트 크기 2배 확대 적용                */
-/* --------------------------------------------------------- */
-div[data-testid="stTextInput"] input {
-    font-size: 1.25rem !important;        /* 입력 텍스트 크기 2배 */
-    height: 80px !important;            /* 입력 상자 높이 2배 */
-    border-radius: 12px !important;
-    padding: 10px 20px !important;
-    font-weight: 600 !important;
-}
-
-/* 입력창 라벨 텍스트 크기 지정 */
-div[data-testid="stTextInput"] label p {
-    font-size: 1.3rem !important;
     font-weight: bold !important;
 }
 
@@ -226,15 +194,11 @@ else:
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
 
     # -----------------------------------------------------------------------
-    # 1. 영단어 스펠링 입력창 (카드 상단 또는 하단 배치)
+    # 1. 클릭 시 뒤집히는 카드 (상단 배치)
     # -----------------------------------------------------------------------
-    user_input = st.text_input(
-        "✍️ 단어 입력하세요 (입력 후 카드 클릭):",
-        key=f"input_{idx}",
-        placeholder="예: apple",
-    )
-
-    # 채점 결과 계산
+    # 세션 기반 입력값 및 채점 결과 임시 확인
+    user_input_key = f"input_{idx}"
+    user_input = st.session_state.get(user_input_key, "")
     clean_input = user_input.strip().lower() if user_input else ""
     clean_target = card["word"].strip().lower()
 
@@ -245,21 +209,13 @@ else:
     else:
         ox_result = f"❌ 오답입니다! (입력: {user_input})"
 
-    # -----------------------------------------------------------------------
-    # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
-    # -----------------------------------------------------------------------
     if not st.session_state.flipped:
         # 카드 앞면
-        card_label = (
-            f"{card['meaning']}\n\n\n"
-        )
+        card_label = f"{card['meaning']}"
         card_key = f"main_card_btn_front_{idx}"
     else:
         # 카드 뒷면 (정답 + O/X 표기)
-        card_label = (
-            f"{card['word']}\n\n"
-            f"{ox_result}\n"
-       )
+        card_label = f"{card['word']}\n\n{ox_result}"
         card_key = f"main_card_btn_back_{idx}"
 
     # 카드 클릭 이벤트 처리
@@ -267,10 +223,19 @@ else:
         flip_card()
         st.rerun()
 
+    # -----------------------------------------------------------------------
+    # 2. 영단어 스펠링 입력창 (카드 아래로 이동)
+    # -----------------------------------------------------------------------
+    user_input = st.text_input(
+        "✍️ 단어를 입력하세요 (입력 후 카드 클릭):",
+        key=f"input_{idx}",
+        placeholder="예: apple",
+    )
+
     st.write("")
 
     # -----------------------------------------------------------------------
-    # 3. 하단 이전/다음/섞기 조작 버튼
+    # 3. 하단 이전/다음 조작 버튼
     # -----------------------------------------------------------------------
     col1, col2 = st.columns([1, 1])
 
@@ -293,4 +258,3 @@ else:
             st.session_state.idx += 1
             st.session_state.flipped = False
             st.rerun()
-
