@@ -78,19 +78,27 @@ CARD_CSS = """
 /* 1. 메인 플래시카드 버튼 스타일 */
 /* 300px 크기 + 파란색 그라데이션 적용 */
 div.stButton > button:first-child {
-    width: 185% !important;
+    width: 100% !important;
     min-height: 220px !important;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
     border-radius: 20px !important;
-    font-size: 2rem !important;
-    font-weight: 700 !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     border: none !important;
     margin: 20px auto !important;
     display: block !important;
-    white-space: pre-wrap !important;
     transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+/* 버튼 내부의 텍스트 컨테이너와 문단 태그를 직접 타겟팅 */
+div.stButton > button:first-child p,
+div.stButton > button:first-child div,
+div.stButton > button:first-child span {
+    font-size: 3rem !important;
+    font-weight: 700 !important;
+    color: white !important;
+    line-height: 1.2 !important;
+    white-space: pre-wrap !important;
 }
 
 div.stButton > button:first-child:hover {
@@ -190,7 +198,7 @@ else:
     if not clean_input:
         ox_result = "❌ 오답입니다!"
     elif clean_input == clean_target:
-        ox_result = "⭕ (정답입니다!)"
+        ox_result = "⭕ 정답입니다!"
     else:
         ox_result = f"❌ 오답입니다! (입력: {user_input})"
 
@@ -220,13 +228,13 @@ else:
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
-            st.session_state.idx -= 1
+        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
+            st.session_state.idx += 1
             st.session_state.flipped = False
             st.rerun()
 
     with col2:
-        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
-            st.session_state.idx += 1
+        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
+            st.session_state.idx -= 1
             st.session_state.flipped = False
             st.rerun()
