@@ -1,7 +1,8 @@
 """
-영단어 카드 퀴즈 앱
-- 구글 자동 번역 없이 사용자가 입력한 [단어 : 뜻] 목록 파일(txt/csv)을 업로드하거나 직접 입력
-- 카드를 클릭하거나 버튼을 누르면 뒤집힘 (앞면: 한국어 뜻 / 뒷면: 영단어)
+영단어 카드 퀴즈 앱 (스펠링 테스트 기능 포함)
+- [단어 : 뜻] 목록 파일(txt/csv) 업로드 또는 직접 입력
+- 앞면: 한국어 뜻 표시
+- 아래쪽: 영단어 스펠링 입력 칸 (정답 체크: OK / ERROR)
 실행 방법: streamlit run app.py
 """
 
@@ -27,10 +28,6 @@ if "flipped" not in st.session_state:
 def parse_word_pairs(text: str) -> list[dict]:
     """텍스트에서 [단어 : 뜻] 쌍을 추출하고 중복을 제거한다.
     구분자로 콜론(:), 등호(=), 하이픈(-), 쉼표(,), 탭(\t)을 인식합니다.
-    예:
-    apple : 사과
-    book = 책
-    computer - 컴퓨터
     """
     lines = text.strip().splitlines()
     cards, seen = [], set()
@@ -40,7 +37,6 @@ def parse_word_pairs(text: str) -> list[dict]:
         if not line:
             continue
 
-        # 콜론(:), 등호(=), 하이픈(-), 탭(\t), 쉼표(,) 중 첫 번째로 발견된 구분자로 나누기
         parts = re.split(r"[:=\-\t,]", line, maxsplit=1)
 
         word = parts[0].strip()
@@ -49,7 +45,6 @@ def parse_word_pairs(text: str) -> list[dict]:
         if not word:
             continue
 
-        # 영단어 소문자 기준 중복 방지 (원래 대소문자는 유지)
         word_key = word.lower()
         if word_key in seen:
             continue
@@ -73,14 +68,14 @@ def flip_card():
 
 
 # ---------------------------------------------------------------------------
-# 카드 스타일 (CSS - 파란색 테마 및 세로 880px 적용)
+# 카드 스타일 (CSS - 파란색 테마 및 OK/ERROR 스타일)
 # ---------------------------------------------------------------------------
 CARD_CSS = """
 <style>
-/* 4배 커진 카드 컨테이너 */
+/* 카드 컨테이너 */
 .card-container {
     width: 100%;
-    min-height: 300px !important;  /* 세로 4배 크기 */
+    min-height: 500px !important;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
@@ -99,13 +94,13 @@ CARD_CSS = """
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* 카드 앞면 (한국어 뜻) - 짙고 중후한 파란색 그라데이션 */
+/* 카드 앞면 (한국어 뜻) */
 .card-front {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     color: #ffffff;
 }
 
-/* 카드 뒷면 (영단어) - 밝고 선명한 파란색 그라데이션 */
+/* 카드 뒷면 (영단어) */
 .card-back {
     background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     color: #ffffff;
@@ -123,6 +118,23 @@ CARD_CSS = """
     font-weight: 800;
     line-height: 1.3;
 }
+
+/* 정답/오답 텍스트 스타일 */
+.status-ok {
+    color: #2e7d32;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.status-error {
+    color: #c62828;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    margin: 10px 0;
+}
 </style>
 """
 st.markdown(CARD_CSS, unsafe_allow_html=True)
@@ -131,7 +143,7 @@ st.markdown(CARD_CSS, unsafe_allow_html=True)
 # 제목
 # ---------------------------------------------------------------------------
 st.title("📚 영단어 카드 퀴즈")
-st.caption("단어와 뜻 목록을 업로드하면 카드가 만들어집니다. 카드를 뒤집어 단어와 뜻을 확인하세요.")
+st.caption("단어와 뜻 목록을 입력하고, 스펠링을 맞춰보세요!")
 
 # ---------------------------------------------------------------------------
 # 사이드바: 영단어 업로드
@@ -206,15 +218,15 @@ else:
 
     # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
     if not st.session_state.flipped:
-        sub_label = " 뜻 "
+        sub_label = "🇰🇷 한국어 뜻 (앞면)"
         main_text = card["meaning"]
         card_class = "card-front"
     else:
-        sub_label = " 영단어 "
+        sub_label = "🔤 영단어 정답 (뒷면)"
         main_text = card["word"]
         card_class = "card-back"
 
-    # 세로 4배 크기의 파란색 카드 HTML 영역
+    # 세로 카드 HTML 영역
     card_html = f"""
     <div class="card-container {card_class}">
         <div class="card-label-sub">{sub_label}</div>
@@ -222,6 +234,26 @@ else:
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
+
+    # -----------------------------------------------------------------------
+    # 영단어 스펠링 입력 및 정답 확인 영역
+    # -----------------------------------------------------------------------
+    user_input = st.text_input(
+        "✍️ 영단어 스펠링을 입력하세요 (입력 후 Enter):",
+        key=f"input_{idx}",
+        placeholder="예: apple",
+    )
+
+    if user_input:
+        clean_input = user_input.strip().lower()
+        clean_target = card["word"].strip().lower()
+
+        if clean_input == clean_target:
+            st.markdown('<div class="status-ok">⭕ OK</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="status-error">❌ ERROR</div>', unsafe_allow_html=True)
+
+    st.write("")
 
     # 하단 조작 버튼
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -237,7 +269,7 @@ else:
             st.rerun()
 
     with col2:
-        if st.button("🔄 카드 뒤집기", type="primary", use_container_width=True):
+        if st.button("🔄 정답 보기 / 뒤집기", type="primary", use_container_width=True):
             flip_card()
             st.rerun()
 
