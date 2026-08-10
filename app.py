@@ -239,14 +239,12 @@ else:
         card_label = (
             f"🇰🇷 한국어 뜻 (앞면)\n\n"
             f"{card['meaning']}\n\n\n"
-            f"👇 (카드를 클릭하면 정답과 O/X 결과가 나옵니다)"
         )
         card_key = f"main_card_btn_front_{idx}"
     else:
         # 카드 뒷면 (정답 + O/X 표기)
         card_label = (
-            f"정답\n\n"
-            f"정답: {card['word']}\n\n"
+            f"{card['word']}\n\n"
             f"판정: {ox_result}\n"
        )
         card_key = f"main_card_btn_back_{idx}"
