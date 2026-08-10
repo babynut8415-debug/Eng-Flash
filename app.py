@@ -250,7 +250,41 @@ else:
 
     st.write("")
 
-    # 하단 조작 버튼
+   if not st.session_state.flipped:
+        # 카드 앞면
+        card_label = (
+            f"🇰🇷 한국어 뜻 (앞면)\n\n"
+            f"{card['meaning']}\n\n\n"
+            f"👇 (카드를 클릭하면 정답과 O/X 결과가 나옵니다)"
+        )
+        card_key = f"main_card_btn_front_{idx}"
+    else:
+        # 카드 뒷면 (정답 + O/X 표기)
+        card_label = (
+            f"🔤 영단어 정답 (뒷면)\n\n"
+            f"정답: {card['word']}\n"
+            f"판정: {ox_result}\n\n\n"
+            f"👇 (카드를 클릭하면 앞면으로 돌아갑니다)"
+        )
+        card_key = f"main_card_btn_back_{idx}"
+
+    # 카드 클릭 이벤트 처리
+    if st.button(card_label, key=card_key, use_container_width=True):
+        flip_card()
+        st.rerun()
+
+    # 입력창 바로 밑에 실시간 O/X 상태 안내
+    if user_input:
+        if clean_input == clean_target:
+            st.markdown('<div class="status-ok">⭕ O</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="status-error">❌ X</div>', unsafe_allow_html=True)
+
+    st.write("")
+
+    # -----------------------------------------------------------------------
+    # 3. 하단 이전/다음/섞기 조작 버튼
+    # -----------------------------------------------------------------------
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -263,12 +297,8 @@ else:
             st.session_state.flipped = False
             st.rerun()
 
-    with col2:
-        if st.button("🔄 정답 보기 / 뒤집기", type="primary", use_container_width=True):
-            flip_card()
-            st.rerun()
 
-    with col3:
+    with col2:
         if st.button(
             "다음 ➡️",
             use_container_width=True,
@@ -279,15 +309,3 @@ else:
             st.rerun()
 
     st.divider()
-
-    col_sub1, col_sub2 = st.columns(2)
-    with col_sub1:
-        if st.button("🔀 단어 섞기 (랜덤)", use_container_width=True):
-            shuffle_quiz()
-            st.toast("🎲 카드 순서를 랜덤하게 섞었습니다!")
-            st.rerun()
-
-    with col_sub2:
-        if st.button("🔁 처음부터 다시 풀기", use_container_width=True):
-            reset_quiz()
-            st.rerun()
