@@ -225,11 +225,11 @@ else:
     clean_target = card["word"].strip().lower()
 
     if not clean_input:
-        ox_result = "❓ 미입력"
+        ox_result = "❌ 오답입니다!"
     elif clean_input == clean_target:
-        ox_result = "⭕ O (정답입니다!)"
+        ox_result = "⭕ (정답입니다!)"
     else:
-        ox_result = f"❌ X (입력: {user_input})"
+        ox_result = f"❌ 오답입니다! (입력: {user_input})"
 
     # -----------------------------------------------------------------------
     # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
@@ -256,13 +256,6 @@ else:
     if st.button(card_label, key=card_key, use_container_width=True):
         flip_card()
         st.rerun()
-
-    # 입력창 바로 밑에 실시간 O/X 상태 안내
-    if user_input:
-        if clean_input == clean_target:
-            st.markdown('<div class="status-ok">⭕ O</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="status-error">❌ X</div>', unsafe_allow_html=True)
 
     st.write("")
 
