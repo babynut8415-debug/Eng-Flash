@@ -219,9 +219,11 @@ else:
 
     # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
     if not st.session_state.flipped:
+        sub_label = " 뜻 "
         main_text = card["meaning"]
         card_class = "card-front"
     else:
+        sub_label = " 영단어 "
         main_text = card["word"]
         card_class = "card-back"
 
