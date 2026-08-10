@@ -211,46 +211,30 @@ else:
 
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
 
-    # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
-    if not st.session_state.flipped:
-        sub_label = " 뜻 "
-        main_text = card["meaning"]
-        card_class = "card-front"
-    else:
-        sub_label = " 영단어 "
-        main_text = card["word"]
-        card_class = "card-back"
-
-    # 카드 HTML 영역
-    card_html = f"""
-    <div class="card-container {card_class}">
-        <div class="card-label-sub">{sub_label}</div>
-        <div class="card-text-main">{main_text}</div>
-    </div>
-    """
-    st.markdown(card_html, unsafe_allow_html=True)
-
     # -----------------------------------------------------------------------
-    # 영단어 스펠링 입력 (크기 2배 확대) 및 정답 확인 영역
+    # 1. 영단어 스펠링 입력창 (카드 상단 또는 하단 배치)
     # -----------------------------------------------------------------------
     user_input = st.text_input(
-        "✍️ 스펠링을 입력하세요 (입력 후 Enter):",
+        "✍️ 영단어 스펠링을 입력하세요 (입력 후 카드를 클릭하세요):",
         key=f"input_{idx}",
         placeholder="예: apple",
     )
 
-    if user_input:
-        clean_input = user_input.strip().lower()
-        clean_target = card["word"].strip().lower()
+    # 채점 결과 계산
+    clean_input = user_input.strip().lower() if user_input else ""
+    clean_target = card["word"].strip().lower()
 
-        if clean_input == clean_target:
-            st.markdown('<div class="status-ok">⭕ OK</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="status-error">❌ ERROR</div>', unsafe_allow_html=True)
+    if not clean_input:
+        ox_result = "❓ 미입력"
+    elif clean_input == clean_target:
+        ox_result = "⭕ O (정답입니다!)"
+    else:
+        ox_result = f"❌ X (입력: {user_input})"
 
-    st.write("")
-
-   if not st.session_state.flipped:
+    # -----------------------------------------------------------------------
+    # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
+    # -----------------------------------------------------------------------
+    if not st.session_state.flipped:
         # 카드 앞면
         card_label = (
             f"🇰🇷 한국어 뜻 (앞면)\n\n"
@@ -297,8 +281,12 @@ else:
             st.session_state.flipped = False
             st.rerun()
 
-
     with col2:
+        if st.button("🔄 뒤집기 (버튼)", type="primary", use_container_width=True):
+            flip_card()
+            st.rerun()
+
+    with col3:
         if st.button(
             "다음 ➡️",
             use_container_width=True,
@@ -310,7 +298,7 @@ else:
 
     st.divider()
 
-col_sub1, col_sub2 = st.columns(2)
+    col_sub1, col_sub2 = st.columns(2)
     with col_sub1:
         if st.button("🔀 단어 섞기 (랜덤)", use_container_width=True):
             shuffle_quiz()
