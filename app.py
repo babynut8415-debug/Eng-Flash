@@ -138,77 +138,73 @@ with st.sidebar:
         for c in st.session_state.cards:
             st.write(f"- **{c['word']}** : {c['meaning']}")
 
-    if st.session_state.cards:
-        # 카드가 방금 새로 만들어졌을 수도 있으므로, 여기서 다시 계산합니다.
-        idx = st.session_state.idx
-        total = len(st.session_state.cards)
-        card = st.session_state.cards[idx]
+# ---------------------------------------------------------------------------
+# 메인 화면: 카드 퀴즈
+# ---------------------------------------------------------------------------
+st.title("📚 영단어 카드 퀴즈")
+st.caption("왼쪽 사이드바에서 '단어 : 뜻'을 입력하고 카드를 만들어보세요.")
 
-        # -----------------------------------------------------------------------
-        # 1. 영단어 스펠링 입력창 (카드 상단 또는 하단 배치)
-        # -----------------------------------------------------------------------
-        user_input = st.text_input(
-            "✍️ 단어 입력하세요 (입력 후 카드 클릭):",
-            key=f"input_{idx}",
-            placeholder="예: apple",
-        )
+if not st.session_state.cards:
+    st.info("왼쪽 사이드바에서 단어를 입력하고 카드를 만들어보세요 👈")
+else:
+    idx = st.session_state.idx
+    total = len(st.session_state.cards)
+    card = st.session_state.cards[idx]
 
-        # 채점 결과 계산
-        clean_input = user_input.strip().lower() if user_input else ""
-        clean_target = card["word"].strip().lower()
+    st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
 
-        if not clean_input:
-            ox_result = "❌ 오답입니다!"
-        elif clean_input == clean_target:
-            ox_result = "⭕ (정답입니다!)"
-        else:
-            ox_result = f"❌ 오답입니다! (입력: {user_input})"
+    # -----------------------------------------------------------------------
+    # 1. 영단어 스펠링 입력창
+    # -----------------------------------------------------------------------
+    user_input = st.text_input(
+        "✍️ 단어 입력하세요 (입력 후 카드 클릭):",
+        key=f"input_{idx}",
+        placeholder="예: apple",
+    )
 
-        # -----------------------------------------------------------------------
-        # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
-        # -----------------------------------------------------------------------
-        if not st.session_state.flipped:
-            # 카드 앞면
-            card_label = (
-                f"{card['meaning']}\n\n\n"
-            )
-            card_key = f"main_card_btn_front_{idx}"
-        else:
-            # 카드 뒷면 (정답 + O/X 표기)
-            card_label = (
-                f"{card['word']}\n\n"
-                f"{ox_result}\n"
-            )
-            card_key = f"main_card_btn_back_{idx}"
+    # 채점 결과 계산
+    clean_input = user_input.strip().lower() if user_input else ""
+    clean_target = card["word"].strip().lower()
 
-        # 카드 클릭 이벤트 처리
-        if st.button(card_label, key=card_key, use_container_width=True):
-            flip_card()
+    if not clean_input:
+        ox_result = "❌ 오답입니다!"
+    elif clean_input == clean_target:
+        ox_result = "⭕ (정답입니다!)"
+    else:
+        ox_result = f"❌ 오답입니다! (입력: {user_input})"
+
+    # -----------------------------------------------------------------------
+    # 2. 클릭 시 뒤집히는 카드 (Streamlit Button 기반)
+    # -----------------------------------------------------------------------
+    if not st.session_state.flipped:
+        # 카드 앞면
+        card_label = f"{card['meaning']}\n\n\n"
+        card_key = f"main_card_btn_front_{idx}"
+    else:
+        # 카드 뒷면 (정답 + O/X 표기)
+        card_label = f"{card['word']}\n\n{ox_result}\n"
+        card_key = f"main_card_btn_back_{idx}"
+
+    # 카드 클릭 이벤트 처리
+    if st.button(card_label, key=card_key, use_container_width=True):
+        flip_card()
+        st.rerun()
+
+    st.write("")
+
+    # -----------------------------------------------------------------------
+    # 3. 하단 이전/다음 조작 버튼
+    # -----------------------------------------------------------------------
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        if st.button("⬅️ 이전", use_container_width=True, disabled=(idx == 0)):
+            st.session_state.idx -= 1
+            st.session_state.flipped = False
             st.rerun()
 
-        st.write("")
-
-        # -----------------------------------------------------------------------
-        # 3. 하단 이전/다음/섞기 조작 버튼
-        # -----------------------------------------------------------------------
-        col1, col2 = st.columns([1, 1])
-
-        with col1:
-            if st.button(
-                "⬅️ 이전",
-                use_container_width=True,
-                disabled=(idx == 0),
-            ):
-                st.session_state.idx -= 1
-                st.session_state.flipped = False
-                st.rerun()
-
-        with col2:
-            if st.button(
-                "다음 ➡️",
-                use_container_width=True,
-                disabled=(idx == total - 1),
-            ):
-                st.session_state.idx += 1
-                st.session_state.flipped = False
-                st.rerun()
+    with col2:
+        if st.button("다음 ➡️", use_container_width=True, disabled=(idx == total - 1)):
+            st.session_state.idx += 1
+            st.session_state.flipped = False
+            st.rerun()
