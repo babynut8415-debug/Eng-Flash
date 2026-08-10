@@ -112,14 +112,13 @@ div.stButton > button:first-child:active {
 }
 
 /* 2. 하단 조작 버튼(이전/다음) 및 사이드바 버튼은 기본 스타일 유지 */
-/* 가로 배치를 위해 st.columns 내의 버튼 스타일을 복구합니다. */
 div[data-testid="stHorizontalBlock"] div.stButton > button,
 section[data-testid="stSidebar"] div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
     height: auto !important;
-    background: transparent !important;
-    color: inherit !important;
+    background: #f0f2f6 !important; /* 약간의 배경색 추가 */
+    color: black !important;
     border-radius: 8px !important;
     font-size: 1rem !important;
     font-weight: 400 !important;
@@ -129,10 +128,20 @@ section[data-testid="stSidebar"] div.stButton > button {
     display: inline-flex !important;
 }
 
+/* 하단/사이드바 버튼 내부의 텍스트 색상도 검정으로 강제 */
+div[data-testid="stHorizontalBlock"] div.stButton > button p,
+div[data-testid="stHorizontalBlock"] div.stButton > button span,
+section[data-testid="stSidebar"] div.stButton > button p,
+section[data-testid="stSidebar"] div.stButton > button span {
+    color: black !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+}
+
 div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
 section[data-testid="stSidebar"] div.stButton > button:hover {
     border-color: #764ba2 !important;
-    color: #764ba2 !important;
+    background: #e0e2e6 !important;
 }
 </style>
 """
