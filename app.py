@@ -1,8 +1,8 @@
 """
 영단어 카드 퀴즈 앱
-- 사진/OCR 대신 영단어 목록 파일(txt/csv)을 업로드하거나 직접 입력
+- 영단어 목록 파일(txt/csv)을 업로드하거나 직접 입력
 - 각 단어를 한국어로 번역
-- 카드를 클릭하면 한국어 뜻 ↔ 영단어로 뒤집힘 (앞면: 한국어 뜻, 뒷면: 영단어)
+- 카드를 클릭하거나 버튼을 누르면 뒤집힘 (앞면: 한국어 뜻 / 뒷면: 영단어)
 실행 방법: streamlit run app.py
 """
 
@@ -84,48 +84,57 @@ def reset_quiz():
 def flip_card():
     st.session_state.flipped = not st.session_state.flipped
 
+
 # ---------------------------------------------------------------------------
-# 카드 스타일 (CSS - 파란색 테마 및 세로 4배 확대)
+# 카드 스타일 (CSS - 파란색 테마 및 세로 880px 적용)
 # ---------------------------------------------------------------------------
 CARD_CSS = """
 <style>
-/* Streamlit 기본 버튼을 4배 높이의 파란색 카드 스타일로 변경 */
-div.stButton > button[key*="flashcard"] {
-    min-height: 880px !important;  /* 기존 220px의 4배 */
-    width: 100% !important;
-    border-radius: 24px !important;
-    font-size: 3em !important;
-    font-weight: 800 !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    transition: all 0.3s ease !important;
-    margin: 10px 0px !important;
-}
-
-/* 카드 앞면 (한국어 뜻) - 짙은 신뢰감 있는 블루 그라데이션 */
-div.stButton > button[key*="flashcard_front"] {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
-}
-
-/* 카드 뒷면 (영단어) - 화사한 파란색/보라빛 블루 그라데이션 */
-div.stButton > button[key*="flashcard_back"] {
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%) !important;
-}
-
-div.stButton > button[key*="flashcard"]:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3) !important;
-}
-
-.card-hint {
+/* 4배 커진 카드 컨테이너 */
+.card-container {
+    width: 100%;
+    min-height: 880px !important;  /* 기존 약 220px의 4배 크기 */
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    color: #4a5568;
-    font-size: 0.95em;
-    margin-bottom: 8px;
-    font-weight: 600;
+    padding: 40px;
+    margin: 15px 0 20px 0;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    word-break: break-word;
+    transition: all 0.3s ease;
+}
+
+.card-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* 카드 앞면 (한국어 뜻) - 짙고 중후한 파란색 그라데이션 */
+.card-front {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+}
+
+/* 카드 뒷면 (영단어) - 밝고 선명한 파란색 그라데이션 */
+.card-back {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    color: #ffffff;
+}
+
+.card-label-sub {
+    font-size: 1.3rem;
+    opacity: 0.85;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.card-text-main {
+    font-size: 3.8rem;
+    font-weight: 800;
+    line-height: 1.3;
 }
 </style>
 """
@@ -135,7 +144,7 @@ st.markdown(CARD_CSS, unsafe_allow_html=True)
 # 제목
 # ---------------------------------------------------------------------------
 st.title("📚 영단어 카드 퀴즈")
-st.caption("영단어 목록을 업로드하면 카드가 만들어집니다. 카드를 클릭하면 단어/뜻을 확인할 수 있어요.")
+st.caption("영단어 목록을 업로드하면 카드가 만들어집니다. 카드를 뒤집어 단어와 뜻을 확인하세요.")
 
 # ---------------------------------------------------------------------------
 # 사이드바: 영단어 업로드
@@ -207,27 +216,27 @@ else:
     card = cards[idx]
 
     st.progress((idx + 1) / total, text=f"{idx + 1} / {total}")
-    st.markdown(
-        '<div class="card-hint">👆 카드를 클릭하면 뒤집힙니다 (앞면: 뜻 / 뒷면: 영단어)</div>',
-        unsafe_allow_html=True,
-    )
 
-    # 앞면: 한국어 뜻 / 뒷면: 영단어
+    # 앞면: 한국어 뜻 / 뒷면: 영단어 설정
     if not st.session_state.flipped:
-        label = f"🇰🇷 {card['meaning']}"
-        key_suffix = "front"
+        sub_label = "🇰🇷 한국어 뜻 (앞면)"
+        main_text = card["meaning"]
+        card_class = "card-front"
     else:
-        label = f"🔤 {card['word']}"
-        key_suffix = "back"
+        sub_label = "🔤 영단어 (뒷면)"
+        main_text = card["word"]
+        card_class = "card-back"
 
-    if st.button(
-        label,
-        key=f"flashcard_{idx}_{key_suffix}",
-        use_container_width=True,
-    ):
-        flip_card()
-        st.rerun()
+    # 세로 4배 크기의 파란색 카드 HTML 영역
+    card_html = f"""
+    <div class="card-container {card_class}">
+        <div class="card-label-sub">{sub_label}</div>
+        <div class="card-text-main">{main_text}</div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
 
+    # 하단 조작 버튼
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -241,7 +250,7 @@ else:
             st.rerun()
 
     with col2:
-        if st.button("🔄 뒤집기", use_container_width=True):
+        if st.button("🔄 카드 뒤집기", type="primary", use_container_width=True):
             flip_card()
             st.rerun()
 
